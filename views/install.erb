@@ -1,3 +1,4 @@
+cli_name="<%= cli_name %>"
 release_name="<%= cli_release_name %>"
 
 darwin_amd64_filename="<%= cli_release_asset_darwin_amd64["name"] %>"
@@ -43,7 +44,7 @@ elif [[ $os_name == "Linux" ]]; then
 else
   echo "Sorry, currently only OS X & Linux versions of $cli_name are being released"
   echo "Please create a ticket to request $os_name $os_hardware releases to be cut; or build the CLI from source"
-  echo "Create ticket at https://github.com/cloudfoundry/cli/issues/new"
+  echo "Create ticket at https://github.com/cloudfoundry-incubator/spiff/issues/new"
   exit
 fi
 
@@ -51,22 +52,14 @@ current_path=$(pwd)
 cd $tmp_unarchive_path
 
 if [[ "$(which curl)X" != "X" ]]; then
-  echo "Downloading '$release_name' via curl..."
-  curl -s -L -H "Accept: application/octet-stream" $download_url -o $filename
+  echo "Downloading $cli_name '$release_name'..."
+  curl -L -H "Accept: application/octet-stream" $download_url -o $filename
 fi
 
 cd $current_path
 if [[ -f $filename ]]; then
-  if [[ $filename =~ "tgz" ]]; then
-    tar xf $filename
-    export cli_name=$(tar tf $filename | head -n 1)
-  elif [[ $filename =~ "zip" ]]; then
-    unzip $filename
-    export cli_name=$(unzip -l $filename | head -n 1)
-  else
-    echo "Oops, I do not know how to unpackage $filename."
-    echo "Please create a ticket at https://github.com/cloudfoundry-community/cf_cli_install/issues/new"
-  fi
+  mv $filename $cli_name
+  chmod +x $cli_name
 fi
 
 echo "Now run the following to use Cloud Foundry CLI:"

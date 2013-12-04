@@ -20,19 +20,24 @@ class CfCliInstall < Sinatra::Base
     erb :index, format: :html5
   end
 
+  get '/pp' do
+    fetch_latest_release_and_setup_session_variables
+    erb :pp, format: :plain, layout: false
+  end
+
   get '/install.sh' do
     fetch_latest_release_and_setup_session_variables
     erb :install, format: :plain, layout: false
   end
 
   def fetch_latest_release_and_setup_session_variables
+    require "pp"
+    pp cli_releases
     latest_cli_release = cli_releases.first
     session[:cli_release_name] = latest_cli_release["name"]
     cli_release_assets = latest_cli_release["assets"]
     session[:cli_release_asset_darwin_amd64]  = cli_release_asset(cli_release_assets, "darwin")
     session[:cli_release_asset_linux_amd64]   = cli_release_asset(cli_release_assets, "linux")
-    session[:cli_release_asset_windows_amd64] = cli_release_asset(cli_release_assets, "windows", "amd64")
-    session[:cli_release_asset_windows_386]   = cli_release_asset(cli_release_assets, "windows", "386")
   end
 
   def cli_release_name
@@ -47,14 +52,6 @@ class CfCliInstall < Sinatra::Base
     session[:cli_release_asset_linux_amd64]
   end
 
-  def cli_release_asset_windows_amd64
-    session[:cli_release_asset_windows_amd64]
-  end
-
-  def cli_release_asset_windows_386
-    session[:cli_release_asset_windows_386]
-  end
-
   def cli_releases
     response = HTTParty.get(cli_releases_uri, cli_releases_headers)
     # response.body, response.code, response.message, response.headers.inspect
@@ -62,12 +59,12 @@ class CfCliInstall < Sinatra::Base
   end
 
   def cli_releases_uri
-    'https://api.github.com/repos/cloudfoundry/cli/releases'
+    'https://api.github.com/repos/cloudfoundry-incubator/spiff/releases'
   end
 
   def cli_releases_headers
     raise "Must set @github_access_token first" unless github_access_token
-    { headers: { "Authorization" => "token #{github_access_token}", "User-Agent" => "cf_cli_install by Dr Nic Williams" } }
+    { headers: { "Authorization" => "token #{github_access_token}", "User-Agent" => "spiff_cli_install by Dr Nic Williams" } }
   end
 
   def request_hostname
@@ -77,10 +74,10 @@ class CfCliInstall < Sinatra::Base
 
   # +platform+ - windows, linux, darwin
   def cli_release_asset(cli_release_assets, platform, arch = "amd64")
-    cli_release_assets.find {|asset| asset["name"] =~ /#{platform}-#{arch}/ }
+    cli_release_assets.find {|asset| asset["name"] =~ /#{platform}[_\-]#{arch}/ }
   end
 
   def cli_name
-    "gcf"
+    "spiff"
   end
 end
